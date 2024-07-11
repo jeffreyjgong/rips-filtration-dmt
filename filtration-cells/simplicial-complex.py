@@ -4,7 +4,8 @@ class IndexedCell:
 
     Attributes:
     - vertices (list): A list of indices representing the vertices of the cell
-    - dimension ()
+    - dimension (int): Dimension of the cell
+    - faces (list): A list of faces of the cell
     """
     def __init__(self, vertices):
         """
@@ -18,14 +19,42 @@ class IndexedCell:
         assert(len(set(vertices)) == len(vertices))
         self.sorted_vertices = sorted(vertices)
         self.dimension = len(vertices) - 1
+        self.faces = []
+        self.cofaces = []
     
+    def add_facet(self, other):
+        self.faces.append(other)
+
+    def add_cofacet(self, other):
+        assert(self.is_facet_of(other))
+        self.cofaces.append(other)
+    
+    def is_facet_of(self, other):
+        # assumes sorted
+        if self.dimension != other.dimension - 1:
+            return False
+
+        found_mismatch = False
+
+        for i in range(self.dimension + 1):
+            if found_mismatch:
+                if self.sorted_vertices[i] != other.sorted_vertices[i+1]:
+                    return False 
+            else:
+                if self.sorted_vertices[i] != other.sorted_vertices[i]:
+                    found_mismatch = True 
+        
+        return True
+
     def __repr__(self):
         return f"{self.dimension}-Cell: {self.sorted_vertices}"
     
 
 def main():
     bruh = IndexedCell([1,2,3])
-    print(bruh)
+    bruhh = IndexedCell([3])
+
+    print(bruhh.is_facet_of(bruh))
 
 
 if __name__ == "__main__":

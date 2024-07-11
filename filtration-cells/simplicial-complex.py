@@ -19,15 +19,18 @@ class IndexedCell:
         assert(len(set(vertices)) == len(vertices))
         self.sorted_vertices = sorted(vertices)
         self.dimension = len(vertices) - 1
-        self.faces = []
-        self.cofaces = []
+        self.facets = []
+        self.cofacets = []
     
     def add_facet(self, other):
-        self.faces.append(other)
+        """
+        Add a facet to the list of facets
+        """
+        self.facets.append(other)
 
     def add_cofacet(self, other):
         assert(self.is_facet_of(other))
-        self.cofaces.append(other)
+        self.cofacets.append(other)
     
     def is_facet_of(self, other):
         # assumes sorted

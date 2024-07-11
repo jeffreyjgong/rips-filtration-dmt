@@ -72,7 +72,7 @@ class VRFiltrationSimplicialComplex:
     
     def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]):
         self._check_full_vertex_range(maximal_simplices)
-
+        self._check_no_faces(maximal_simplices)
 
         #
     
@@ -87,6 +87,12 @@ class VRFiltrationSimplicialComplex:
         full_range = set(range(1, max_vertex+1))
 
         assert(full_range.issubset(vertex_tracker))
+    
+    def _check_no_faces(maximal_simplices: List[VRFiltrationIndexedCell]):
+        for i in range(len(maximal_simplices)-1):
+            for j in range(i+1, len(maximal_simplices)):
+                assert(maximal_simplices[i].is_face_of(maximal_simplices[j]) == -1)
+                assert(maximal_simplices[j].is_face_of(maximal_simplices[i]) == -1)
 
 def main():
     bruh = VRFiltrationIndexedCell([1,2,3])

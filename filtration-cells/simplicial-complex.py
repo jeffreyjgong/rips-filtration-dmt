@@ -19,7 +19,6 @@ class VRFiltrationIndexedCell:
         Parameters:
         vertices (list): A list of indices representing the vertices of the cell
         """
-
         assert(len(vertices) > 0)
         assert(len(set(vertices)) == len(vertices))
         self.vertex_set = set(vertices)
@@ -55,13 +54,13 @@ class VRFiltrationIndexedCell:
         return -1
 
     def __eq__(self, other: object) -> bool | NotImplementedType:
-        if not isinstance(other, Self):
+        if not isinstance(other, VRFiltrationIndexedCell):
             return NotImplemented
         
         return self.vertex_set == other.vertex_set
 
     def __repr__(self) -> str:
-        return f"{self.dimension}-Cell: {self.sorted_vertices}"
+        return f"{list(self.vertex_set)}"
     
 class VRFiltrationSimplicialComplex:
     """
@@ -77,6 +76,7 @@ class VRFiltrationSimplicialComplex:
     def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> None:
         self._check_no_faces(maximal_simplices)
         self.num_vertices = self._check_and_output_full_vertex_range(maximal_simplices)
+        assert(self.sc_ensure_all_connected(maximal_simplices))
         
         self.dimension = max((len(cell_iter.vertex_set) - 1) for cell_iter in maximal_simplices)
         self.n_cell_dict: Dict[int, List[VRFiltrationIndexedCell]] = {}
@@ -86,12 +86,16 @@ class VRFiltrationSimplicialComplex:
         
         for maximal_simplex in maximal_simplices:
             self._enumerate_and_add(maximal_simplex)
+
+    @classmethod
+    def from_ints(cls, maximal_simplices_as_vertices: List[List[int]]) -> None:
+        return cls([VRFiltrationIndexedCell(lst) for lst in maximal_simplices_as_vertices])
     
     def _check_and_output_full_vertex_range(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> int:
         # check that each vertex is represented from [1,n]
         vertex_tracker = set()
         for maximal_simplex in maximal_simplices:
-            for vertex_index in maximal_simplex.sorted_vertices:
+            for vertex_index in maximal_simplex.vertex_set:
                 vertex_tracker.add(vertex_index)
         
         max_vertex = max(vertex_tracker)
@@ -108,6 +112,33 @@ class VRFiltrationSimplicialComplex:
                 assert(maximal_simplices[i].is_face_of(maximal_simplices[j]) == -1)
                 assert(maximal_simplices[j].is_face_of(maximal_simplices[i]) == -1)
     
+    def sc_ensure_all_connected(self, components: List[VRFiltrationIndexedCell]) -> bool:
+        if not components:
+            return True
+
+        # Flatten the list of components and find the maximum element to determine the size of UnionFind
+        flat_list = [item for component in components for item in component.vertex_set]
+        max_element = max(flat_list)
+        
+        # Initialize UnionFind
+        uf = UnionFind(max_element + 1)  # +1 because elements are 1-indexed
+
+        # Union all elements within each component
+        for component in components:
+            component_vertex_lst = list(component.vertex_set)
+            for i in range(1, len(component_vertex_lst)):
+                uf.union(component_vertex_lst[i - 1], component_vertex_lst[i])
+
+        # Find the root of the first element
+        first_root = uf.find(flat_list[0])
+
+        # Check if all elements have the same root
+        for element in flat_list:
+            if uf.find(element) != first_root:
+                return False
+
+        return True
+    
     def _add_cell(self, cell_to_add: VRFiltrationIndexedCell) -> None:
         """
         Function to add a cell to the cell dict
@@ -116,20 +147,24 @@ class VRFiltrationSimplicialComplex:
         - dimension has already been set
         """
         assert(cell_to_add.dimension >= 0 and cell_to_add.dimension <= self.dimension)
-        assert(cell_to_add not in self.n_cell_dict[cell_to_add.dimension])
-        self.n_cell_dict[cell_to_add.dimension].append(cell_to_add)
+        if cell_to_add not in self.n_cell_dict[cell_to_add.dimension]:
+            self.n_cell_dict[cell_to_add.dimension].append(cell_to_add)
     
     def _enumerate_and_add(self, maximal_simplex: VRFiltrationIndexedCell) -> None:
-        # dim = maximal_simplex.dimension
-        # max_enum = (1 << (dim + 1)) - 1
+        dim = maximal_simplex.dimension
+        max_enum = (1 << (dim + 1)) - 1
+        vtx_lst = list(maximal_simplex.vertex_set)
 
-        # for enum_iter in range(1, max_enum+1):
-
-        pass
+        for enum_iter in range(1, max_enum+1):
+            indices_to_add = self._binary_format_list(enum_iter, dim+1)
+            cell_face_lst = []
+            for index_to_add, bin_val in enumerate(indices_to_add):
+                if bin_val == 1:
+                    cell_face_lst.append(vtx_lst[index_to_add])
+            
+            self._add_cell(VRFiltrationIndexedCell(cell_face_lst))
     
-    
-
-def _binary_format_list(num: int, size: int) -> List[int]:
+    def _binary_format_list(self, num: int, size: int) -> List[int]:
         binary_representation = bin(num)[2:][::-1]
 
         binary_list = [int(bit) for bit in binary_representation]
@@ -138,17 +173,69 @@ def _binary_format_list(num: int, size: int) -> List[int]:
         while len(binary_list) < size:
             binary_list.append(0)
         
-        return binary_list[:size][::-1]
+        return binary_list[:size]
+    
 
+    def __repr__(self) -> str:
+        repr_str = ""
+        for dim in range(0, self.dimension+1):
+            repr_str += f"{dim} ({len(self.n_cell_dict[dim])}) - {self.n_cell_dict[dim]}"
+            repr_str += "\n\n"
+        
+        return repr_str
+
+class UnionFind:
+    def __init__(self, size):
+        self.parent = list(range(size))
+        self.rank = [1] * size
+
+    def find(self, p):
+        if self.parent[p] != p:
+            self.parent[p] = self.find(self.parent[p])  # Path compression
+        return self.parent[p]
+
+    def union(self, p, q):
+        rootP = self.find(p)
+        rootQ = self.find(q)
+
+        if rootP != rootQ:
+            # Union by rank
+            if self.rank[rootP] > self.rank[rootQ]:
+                self.parent[rootQ] = rootP
+            elif self.rank[rootP] < self.rank[rootQ]:
+                self.parent[rootP] = rootQ
+            else:
+                self.parent[rootQ] = rootP
+                self.rank[rootP] += 1
 
 
 def main():
     bruh = VRFiltrationIndexedCell([1,2,3])
     bruhh = VRFiltrationIndexedCell([3])
+    cell_1 = VRFiltrationIndexedCell([5,6])
+    cell_2 = VRFiltrationIndexedCell([4,5,6])
 
     print(bruhh.is_face_of(bruh))
 
-    print(_binary_format_list(31, 5))
+    # check no faces
+    # bruhhh = VRFiltrationSimplicialComplex([bruh, bruhh])
+
+    # check full range
+    # sc_1 = VRFiltrationSimplicialComplex([cell_1, bruh])
+
+    # check fully connected
+    # sc_2 = VRFiltrationSimplicialComplex([cell_2, bruh])
+
+    # check bin format list
+    # print(_binary_format_list(31, 5))
+    # hello_world = VRFiltrationSimplicialComplex.from_ints([[1,2,3], [3,4], [4,5,6,7]])
+
+
+    # print(hello_world)
+
+    hello_world_2 = VRFiltrationSimplicialComplex.from_ints([[1,2,3,4,5,6]])
+    print(hello_world_2)
+    print("yay it's the triangle numbers so its right")
 
 
 if __name__ == "__main__":

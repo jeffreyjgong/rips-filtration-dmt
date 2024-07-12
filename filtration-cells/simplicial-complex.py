@@ -140,6 +140,10 @@ class VRFiltrationSimplicialComplex:
 
         return True
     
+    def add_maximal_simplex(self, maximal_simplex: VRFiltrationIndexedCell) -> None:
+        # check if already in, or is a face of another cell that's currently in
+        pass
+    
     def _add_cell(self, cell_to_add: VRFiltrationIndexedCell) -> None:
         """
         Function to add a cell to the cell dict

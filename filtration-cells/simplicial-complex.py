@@ -73,10 +73,11 @@ class VRFiltrationSimplicialComplex:
     - n_cell_dict (dict): A dictionary of all the simplices per dimension
     """
     
-    def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> None:
+    def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell], check_initial_connect: bool = True) -> None:
         self._check_no_faces(maximal_simplices)
         self.num_vertices = self._check_and_output_full_vertex_range(maximal_simplices)
-        assert(self.sc_ensure_all_connected(maximal_simplices))
+        if check_initial_connect:
+            assert(self.sc_ensure_all_connected(maximal_simplices))
         
         self.dimension = max((len(cell_iter.vertex_set) - 1) for cell_iter in maximal_simplices)
         self.n_cell_dict: Dict[int, List[VRFiltrationIndexedCell]] = {}
@@ -88,8 +89,8 @@ class VRFiltrationSimplicialComplex:
             self._enumerate_and_add(maximal_simplex)
 
     @classmethod
-    def from_ints(cls, maximal_simplices_as_vertices: List[List[int]]) -> None:
-        return cls([VRFiltrationIndexedCell(lst) for lst in maximal_simplices_as_vertices])
+    def from_ints(cls, maximal_simplices_as_vertices: List[List[int]], check_initial_connect: bool = True) -> None:
+        return cls([VRFiltrationIndexedCell(lst) for lst in maximal_simplices_as_vertices], check_initial_connect)
     
     def _check_and_output_full_vertex_range(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> int:
         # check that each vertex is represented from [1,n]
@@ -223,8 +224,8 @@ def main():
     # check full range
     # sc_1 = VRFiltrationSimplicialComplex([cell_1, bruh])
 
-    # check fully connected
-    # sc_2 = VRFiltrationSimplicialComplex([cell_2, bruh])
+    # check fully connected and optionality
+    # sc_2 = VRFiltrationSimplicialComplex([cell_2, bruh], False)
 
     # check bin format list
     # print(_binary_format_list(31, 5))
@@ -236,6 +237,7 @@ def main():
     hello_world_2 = VRFiltrationSimplicialComplex.from_ints([[1,2,3,4,5,6]])
     print(hello_world_2)
     print("yay it's the triangle numbers so its right")
+
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ class VRFiltrationSimplicialComplex:
     - n_cell_dict (dict): A dictionary of all the simplices per dimension
     """
     
-    def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]):
+    def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> None:
         self._check_no_faces(maximal_simplices)
         self.num_vertices = self._check_and_output_full_vertex_range(maximal_simplices)
         
@@ -83,8 +83,11 @@ class VRFiltrationSimplicialComplex:
         
         for dim in range(0, self.dimension+1):
             self.n_cell_dict[dim] = []
+        
+        for maximal_simplex in maximal_simplices:
+            self._enumerate_and_add(maximal_simplex)
     
-    def _check_and_output_full_vertex_range(self, maximal_simplices: List[VRFiltrationIndexedCell]):
+    def _check_and_output_full_vertex_range(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> int:
         # check that each vertex is represented from [1,n]
         vertex_tracker = set()
         for maximal_simplex in maximal_simplices:
@@ -98,14 +101,14 @@ class VRFiltrationSimplicialComplex:
         
         return max_vertex
     
-    def _check_no_faces(self, maximal_simplices: List[VRFiltrationIndexedCell]):
+    def _check_no_faces(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> None:
         # check that no maximal simplices are faces of each other
         for i in range(len(maximal_simplices)-1):
             for j in range(i+1, len(maximal_simplices)):
                 assert(maximal_simplices[i].is_face_of(maximal_simplices[j]) == -1)
                 assert(maximal_simplices[j].is_face_of(maximal_simplices[i]) == -1)
     
-    def _add_cell(self, cell_to_add: VRFiltrationIndexedCell):
+    def _add_cell(self, cell_to_add: VRFiltrationIndexedCell) -> None:
         """
         Function to add a cell to the cell dict
 
@@ -115,12 +118,37 @@ class VRFiltrationSimplicialComplex:
         assert(cell_to_add.dimension >= 0 and cell_to_add.dimension <= self.dimension)
         assert(cell_to_add not in self.n_cell_dict[cell_to_add.dimension])
         self.n_cell_dict[cell_to_add.dimension].append(cell_to_add)
+    
+    def _enumerate_and_add(self, maximal_simplex: VRFiltrationIndexedCell) -> None:
+        # dim = maximal_simplex.dimension
+        # max_enum = (1 << (dim + 1)) - 1
+
+        # for enum_iter in range(1, max_enum+1):
+
+        pass
+    
+    
+
+def _binary_format_list(num: int, size: int) -> List[int]:
+        binary_representation = bin(num)[2:][::-1]
+
+        binary_list = [int(bit) for bit in binary_representation]
+
+        # ensure list is of specified size by padding w zeros
+        while len(binary_list) < size:
+            binary_list.append(0)
+        
+        return binary_list[:size][::-1]
+
+
 
 def main():
     bruh = VRFiltrationIndexedCell([1,2,3])
     bruhh = VRFiltrationIndexedCell([3])
 
     print(bruhh.is_face_of(bruh))
+
+    print(_binary_format_list(31, 5))
 
 
 if __name__ == "__main__":

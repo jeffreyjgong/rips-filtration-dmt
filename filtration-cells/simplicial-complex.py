@@ -1,4 +1,5 @@
-from typing import List, Self
+from types import NotImplementedType
+from typing import Dict, List, Self
 
 class VRFiltrationIndexedCell:
     """
@@ -11,7 +12,7 @@ class VRFiltrationIndexedCell:
     - cofacets (list): A list of cofacets of the cell
     """
 
-    def __init__(self, vertices: List[int]):
+    def __init__(self, vertices: List[int]) -> None:
         """
         Initialize a new cell with the given vertex indices
 
@@ -26,21 +27,21 @@ class VRFiltrationIndexedCell:
         self.co_1_faces: List[Self] = []
         self.co_neg_1_cofaces: List[Self] = []
     
-    def add_co_1_face(self, other: Self):
+    def add_co_1_face(self, other: Self) -> None:
         """
         Add a codimension 1 face
         """
         assert(other.is_face_of(self) == 1)
         self.co_1_faces.append(other)
 
-    def add_co_neg_1_coface(self, other: Self):
+    def add_co_neg_1_coface(self, other: Self) -> None:
         """
         Add a codimension -1 face
         """
         assert(self.is_face_of(other) == 1)
         self.co_neg_1_cofaces.append(other)
     
-    def is_face_of(self, other: Self):
+    def is_face_of(self, other: Self) -> int:
         """
         Returns the codimension of other w.r.t self, returns -1 if not a face
         """
@@ -53,10 +54,13 @@ class VRFiltrationIndexedCell:
         
         return -1
 
-
+    def __eq__(self, other: object) -> bool | NotImplementedType:
+        if not isinstance(other, Self):
+            return NotImplemented
         
+        return self.vertex_set == other.vertex_set
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.dimension}-Cell: {self.sorted_vertices}"
     
 class VRFiltrationSimplicialComplex:
@@ -67,18 +71,20 @@ class VRFiltrationSimplicialComplex:
     - maximal_simplices (list): A list of IndexedCells representing the maximal simplices
     - num_vertices (int): A number of vertices, assumed to be unchanging
     - dimension (int): The dimension of the maximal simplex
-    - n_simplex_dict (dict): A dictionary of all the simplices per dimension
+    - n_cell_dict (dict): A dictionary of all the simplices per dimension
     """
     
     def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]):
         self._check_no_faces(maximal_simplices)
         self.num_vertices = self._check_and_output_full_vertex_range(maximal_simplices)
         
-        self.dimension = max(len(cell_iter.vertex_set) for cell_iter in maximal_simplices)
+        self.dimension = max((len(cell_iter.vertex_set) - 1) for cell_iter in maximal_simplices)
+        self.n_cell_dict: Dict[int, List[VRFiltrationIndexedCell]] = {}
         
-        #
+        for dim in range(0, self.dimension+1):
+            self.n_cell_dict[dim] = []
     
-    def _check_and_output_full_vertex_range(maximal_simplices: List[VRFiltrationIndexedCell]):
+    def _check_and_output_full_vertex_range(self, maximal_simplices: List[VRFiltrationIndexedCell]):
         # check that each vertex is represented from [1,n]
         vertex_tracker = set()
         for maximal_simplex in maximal_simplices:
@@ -92,11 +98,23 @@ class VRFiltrationSimplicialComplex:
         
         return max_vertex
     
-    def _check_no_faces(maximal_simplices: List[VRFiltrationIndexedCell]):
+    def _check_no_faces(self, maximal_simplices: List[VRFiltrationIndexedCell]):
+        # check that no maximal simplices are faces of each other
         for i in range(len(maximal_simplices)-1):
             for j in range(i+1, len(maximal_simplices)):
                 assert(maximal_simplices[i].is_face_of(maximal_simplices[j]) == -1)
                 assert(maximal_simplices[j].is_face_of(maximal_simplices[i]) == -1)
+    
+    def _add_cell(self, cell_to_add: VRFiltrationIndexedCell):
+        """
+        Function to add a cell to the cell dict
+
+        Assumes
+        - dimension has already been set
+        """
+        assert(cell_to_add.dimension >= 0 and cell_to_add.dimension <= self.dimension)
+        assert(cell_to_add not in self.n_cell_dict[cell_to_add.dimension])
+        self.n_cell_dict[cell_to_add.dimension].append(cell_to_add)
 
 def main():
     bruh = VRFiltrationIndexedCell([1,2,3])

@@ -89,7 +89,7 @@ class VRFiltrationSimplicialComplex:
             self._enumerate_and_add(maximal_simplex)
 
     @classmethod
-    def from_ints(cls, maximal_simplices_as_vertices: List[List[int]], check_initial_connect: bool = True) -> None:
+    def from_ints(cls, maximal_simplices_as_vertices: List[List[int]], check_initial_connect: bool = True) -> Self:
         return cls([VRFiltrationIndexedCell(lst) for lst in maximal_simplices_as_vertices], check_initial_connect)
     
     def _check_and_output_full_vertex_range(self, maximal_simplices: List[VRFiltrationIndexedCell]) -> int:
@@ -142,7 +142,21 @@ class VRFiltrationSimplicialComplex:
     
     def add_maximal_simplex(self, maximal_simplex: VRFiltrationIndexedCell) -> None:
         # check if already in the dictionary
-        pass
+        if maximal_simplex.dimension <= self.dimension:
+            assert(maximal_simplex not in self.n_cell_dict[maximal_simplex.dimension])
+
+        # check that no vertices are not represented
+        assert(all(vtx <= self.num_vertices for vtx in maximal_simplex.vertex_set))
+
+        self._update_dimension(maximal_simplex.dimension)
+
+        self._enumerate_and_add(maximal_simplex)
+    
+    def _update_dimension(self, new_dimension: int) -> None:
+        if new_dimension > self.dimension:
+            for upper_dim in range(self.dimension+1, new_dimension+1):
+                self.n_cell_dict[upper_dim] = []
+            self.dimension = new_dimension
     
     def _add_cell(self, cell_to_add: VRFiltrationIndexedCell) -> None:
         """
@@ -181,6 +195,8 @@ class VRFiltrationSimplicialComplex:
         
         return binary_list[:size]
     
+    def get_f_vector(self) -> List[int]:
+        return [1] + [len(self.n_cell_dict[dim]) for dim in range(0, self.dimension+1)]
 
     def __repr__(self) -> str:
         repr_str = ""
@@ -217,6 +233,7 @@ class UnionFind:
 
 def main():
     bruh = VRFiltrationIndexedCell([1,2,3])
+    full_5 = VRFiltrationIndexedCell([2,3,4,5])
     bruhh = VRFiltrationIndexedCell([3])
     cell_1 = VRFiltrationIndexedCell([5,6])
     cell_2 = VRFiltrationIndexedCell([4,5,6])
@@ -241,6 +258,8 @@ def main():
 
     hello_world_2 = VRFiltrationSimplicialComplex.from_ints([[1,2,3,4,5,6]])
     hello_world_3 = VRFiltrationSimplicialComplex.from_ints([[1,2,3], [3,4,5]])
+    hello_world_3.add_maximal_simplex(full_5)
+    print(hello_world_3.get_f_vector())
     print(hello_world_3)
     print("yay it's the triangle numbers so its right")
 

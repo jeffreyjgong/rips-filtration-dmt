@@ -141,7 +141,7 @@ class VRFiltrationSimplicialComplex:
         return True
     
     def add_maximal_simplex(self, maximal_simplex: VRFiltrationIndexedCell) -> None:
-        # check if already in, or is a face of another cell that's currently in
+        # check if already in the dictionary
         pass
     
     def _add_cell(self, cell_to_add: VRFiltrationIndexedCell) -> None:
@@ -168,6 +168,7 @@ class VRFiltrationSimplicialComplex:
                     cell_face_lst.append(vtx_lst[index_to_add])
             
             self._add_cell(VRFiltrationIndexedCell(cell_face_lst))
+
     
     def _binary_format_list(self, num: int, size: int) -> List[int]:
         binary_representation = bin(num)[2:][::-1]
@@ -239,7 +240,8 @@ def main():
     # print(hello_world)
 
     hello_world_2 = VRFiltrationSimplicialComplex.from_ints([[1,2,3,4,5,6]])
-    print(hello_world_2)
+    hello_world_3 = VRFiltrationSimplicialComplex.from_ints([[1,2,3], [3,4,5]])
+    print(hello_world_3)
     print("yay it's the triangle numbers so its right")
 
 

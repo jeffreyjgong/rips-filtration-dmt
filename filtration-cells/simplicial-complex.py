@@ -155,6 +155,7 @@ class VRFiltrationSimplicialComplex:
     def _update_dimension(self, new_dimension: int) -> None:
         if new_dimension > self.dimension:
             for upper_dim in range(self.dimension+1, new_dimension+1):
+                assert(upper_dim not in self.n_cell_dict)
                 self.n_cell_dict[upper_dim] = []
             self.dimension = new_dimension
     

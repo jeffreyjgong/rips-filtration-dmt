@@ -71,12 +71,14 @@ class VRFiltrationSimplicialComplex:
     """
     
     def __init__(self, maximal_simplices: List[VRFiltrationIndexedCell]):
-        self._check_full_vertex_range(maximal_simplices)
         self._check_no_faces(maximal_simplices)
-
+        self.num_vertices = self._check_and_output_full_vertex_range(maximal_simplices)
+        
+        self.dimension = max(len(cell_iter.vertex_set) for cell_iter in maximal_simplices)
+        
         #
     
-    def _check_full_vertex_range(maximal_simplices: List[VRFiltrationIndexedCell]):
+    def _check_and_output_full_vertex_range(maximal_simplices: List[VRFiltrationIndexedCell]):
         # check that each vertex is represented from [1,n]
         vertex_tracker = set()
         for maximal_simplex in maximal_simplices:
@@ -87,6 +89,8 @@ class VRFiltrationSimplicialComplex:
         full_range = set(range(1, max_vertex+1))
 
         assert(full_range.issubset(vertex_tracker))
+        
+        return max_vertex
     
     def _check_no_faces(maximal_simplices: List[VRFiltrationIndexedCell]):
         for i in range(len(maximal_simplices)-1):

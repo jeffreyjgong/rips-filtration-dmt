@@ -1,5 +1,6 @@
 from types import NotImplementedType
-from typing import Dict, List, Self
+from typing import Dict, List, Self, Type
+
 
 class VRFiltrationIndexedCell:
     """
@@ -231,15 +232,41 @@ class UnionFind:
                 self.parent[rootQ] = rootP
                 self.rank[rootP] += 1
 
+class VRFiltration:
+    """
+    A class that manages the filtration at each step of the VR construction
+
+    Attributes
+    - n: The number of points evenly-spaced on the planar unit circle
+    - max_step: The maximum number of steps before it becomes 
+
+    """
+
+    def __init__(self, n: int) -> None:
+        # all collapsible 3 and before
+        assert(n > 3)
+        self.n = n
+
+        # we know this ahead of time given n, as soon as half the connections are made
+        self.max_radius = n//2
+        self.cur_radius = 0
+
+        self.simplicial_complex = VRFiltrationSimplicialComplex.from_ints([[vtx] for vtx in range(1, n+1)], False)
+        print(self.simplicial_complex)
+        
+    def step_radius() -> None:
+        pass
+
+        
 
 def main():
-    bruh = VRFiltrationIndexedCell([1,2,3])
-    full_5 = VRFiltrationIndexedCell([2,3,4,5])
-    bruhh = VRFiltrationIndexedCell([3])
-    cell_1 = VRFiltrationIndexedCell([5,6])
-    cell_2 = VRFiltrationIndexedCell([4,5,6])
+    # bruh = VRFiltrationIndexedCell([1,2,3])
+    # full_5 = VRFiltrationIndexedCell([2,3,4,5])
+    # bruhh = VRFiltrationIndexedCell([3])
+    # cell_1 = VRFiltrationIndexedCell([5,6])
+    # cell_2 = VRFiltrationIndexedCell([4,5,6])
 
-    print(bruhh.is_face_of(bruh))
+    # print(bruhh.is_face_of(bruh))
 
     # check no faces
     # bruhhh = VRFiltrationSimplicialComplex([bruh, bruhh])
@@ -257,14 +284,48 @@ def main():
 
     # print(hello_world)
 
-    hello_world_2 = VRFiltrationSimplicialComplex.from_ints([[1,2,3,4,5,6]])
-    hello_world_3 = VRFiltrationSimplicialComplex.from_ints([[1,2,3], [3,4,5]])
-    hello_world_3.add_maximal_simplex(full_5)
-    print(hello_world_3.get_f_vector())
-    print(hello_world_3)
-    print("yay it's the triangle numbers so its right")
+    # hello_world_2 = VRFiltrationSimplicialComplex.from_ints([[1,2,3,4,5,6]])
+    # hello_world_3 = VRFiltrationSimplicialComplex.from_ints([[1,2,3], [3,4,5]])
+    # hello_world_3.add_maximal_simplex(full_5)
+    # print(hello_world_3.get_f_vector())
+    # print(hello_world_3)
+    # print("yay it's the triangle numbers so its right")
+    initial_filtration_test()
+    VRFiltration(6)
 
+def initial_filtration_test():
+    Cell = VRFiltrationIndexedCell
+    SimplicialComplex = VRFiltrationSimplicialComplex
+    level_0 = SimplicialComplex([Cell([1]), Cell([2]), Cell([3]), Cell([4]), Cell([5]), Cell([6])], False)
+    print(level_0)
+    # for level 1 the edges get added in
+    # n = 6
 
+    print('---------\n')
+
+    level_0.add_maximal_simplex(Cell([1,2]))
+    level_0.add_maximal_simplex(Cell([2,3]))
+    level_0.add_maximal_simplex(Cell([3,4]))
+    level_0.add_maximal_simplex(Cell([4,5]))
+    level_0.add_maximal_simplex(Cell([5,6]))
+    level_0.add_maximal_simplex(Cell([6,1]))
+
+    print(level_0)
+
+    level_0.add_maximal_simplex(Cell([1,2,3]))
+    level_0.add_maximal_simplex(Cell([2,3,4]))
+    level_0.add_maximal_simplex(Cell([3,4,5]))
+    level_0.add_maximal_simplex(Cell([4,5,6]))
+    level_0.add_maximal_simplex(Cell([5,6,1]))
+    level_0.add_maximal_simplex(Cell([6,1,2]))
+    
+    level_0.add_maximal_simplex(Cell([1,3,5]))
+    level_0.add_maximal_simplex(Cell([2,4,6]))
+
+    print('-----------\n')
+
+    print(level_0)
+    print
 
 if __name__ == "__main__":
     main()

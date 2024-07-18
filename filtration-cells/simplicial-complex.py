@@ -257,6 +257,10 @@ class VRFiltration:
     def step_radius() -> None:
         pass
 
+    def generate() -> None:
+        # this needs to step the radius until max_radius
+        # also needs to do other stuff
+        pass
         
 
 def main():
